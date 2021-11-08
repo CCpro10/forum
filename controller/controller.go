@@ -4,15 +4,19 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
 	"github.com/dgrijalva/jwt-go"
 	"forum/models"
+	"forum/dao"
+	"github.com/jinzhu/gorm"
 )
 
 const TokenExpireDuration = time.Hour * 2
-var MySecret = []byte("我的密钥")
+var MySecret = []byte("天王盖地虎")
 
 // MyClaims 自定义声明结构体并内嵌jwt.StandardClaims
 // jwt包自带的jwt.StandardClaims只包含了官方字段
@@ -53,38 +57,6 @@ func ParseToken(tokenString string) (*MyClaims, error) {
 		return claims, nil
 	}
 	return nil, errors.New("invalid token")
-}
-
-
-//接收用户名和密码,如果正确的话返回一个tokenstring
-func LoginHandle(c *gin.Context) {
-	// 用户发送用户名和密码过来
-	var user models.UserInfo
-	err := c.ShouldBind(&user)
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 2001,
-			"msg":  "无效的参数",
-		})
-		return
-	}
-	fmt.Println(user)
-	// 校验用户名和密码是否正确
-	if user.Username == "q1mi" && user.Password == "q1mi123" {
-		// 生成Token
-		tokenString, _ := GenToken(user.Username)
-		c.JSON(http.StatusOK, gin.H{
-			"code": 2000,
-			"msg":  "success",
-			"data": gin.H{"token": tokenString},
-		})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"code": 2002,
-		"msg":  "鉴权失败",
-	})
-	return
 }
 
 //基于JWT的认证中间件
@@ -128,3 +100,112 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 }
 
 
+//注册路由
+func RegisterHandle(c *gin.Context) {
+	// 前端页面填写待办事项 点击提交 会发请求到这里
+	// 1. 从请求中把数据拿出来
+	var user models.UserInfo
+	dao.DB.AutoMigrate(models.UserInfo{})
+	err := c.ShouldBind(&user)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"msg": "用户参数绑定失败:" + err.Error()})
+	}
+	//2.验证id和密码的结构
+	log.Println(user.PhoneNumber,len(user.PhoneNumber), user.Password, user.Username,len(user.Password))
+	if len(user.PhoneNumber) != 11 {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "手机号必须为11位"})
+		return
+	}
+	if len(user.Password) < 6 {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "密码长度不能小于六位"})
+		return
+	}
+	if len(user.Username) == 0 {
+		user.Username = "匿名用户"
+	}
+
+	//判断在数据库中账号是否存在
+	if isPhoneNumberExist(dao.DB, user.PhoneNumber) {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "此手机号已被注册"})
+		return
+	}
+	// 3. 对密码加密
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "用户密码加密失败"})
+		return
+	}
+	user.Password=string(hashPassword)
+	//4.存入注册信息
+	err = dao.DB.Create(&user).Error
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"msg":"注册信息存入数据库失败:"+err.Error()})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"msg":  "注册成功,请你重新登录",
+			"date": user,
+		})
+
+	}
+}
+//登录,接收用户名和密码,如果正确的话返回一个tokenstring
+func LoginHandle(c *gin.Context) {
+	// 用户发送用户名和密码过来
+	var user models.UserInfo
+	err := c.ShouldBind(&user)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 2001,
+			"msg":  "无效的参数",
+		})
+		return
+	}
+	fmt.Println(user)
+	// 校验用户名和密码是否正确
+	if len(user.PhoneNumber) != 11 {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "手机号必须为11位"})
+		return
+	}
+	if len(user.Password) < 6 {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "密码长度不能小于六位"})
+		return
+	}
+
+	//判断手机号是否存在
+
+	dao.DB.Where("phone_number = ?", user.PhoneNumber).First(&user)
+	if user.ID == 0 {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "用户不存在，请先注册"})
+		return
+	}
+
+	//判断密码是否正确,??????????
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(user.Password)); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "密码错误"})
+		return
+	}
+
+	// 生成Token
+	tokenString, _ := GenToken(user.PhoneNumber)
+	c.JSON(http.StatusOK, gin.H{
+		"msg":  "登录成功",
+		"data": gin.H{"token": tokenString},
+	})
+	return
+
+}
+//开发者的添加管理者功能,传入一个用户结构体指针,改变用户管理的论坛
+func Addmanager(*models.UserInfo ) {
+
+}
+
+//如果手机号在数据库中已存在返回ture
+func isPhoneNumberExist(db *gorm.DB, PhoneNumber string)bool{
+	var user models.UserInfo
+	//查询并赋值给user
+	db.Where("Phone_number=?", PhoneNumber).First(&user)
+	if user.ID != 0 {
+		return true
+	}
+	return false
+}

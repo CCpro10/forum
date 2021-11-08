@@ -2,25 +2,23 @@ package main
 
 import (
 	"forum/controller"
+	"forum/dao"
+	"forum/models"
 	"github.com/gin-gonic/gin"
-	_ "github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	_ "net/http"
 )
 
-func RegisterHandle(c *gin.Context)  {
-
-}
 func main() {
-	// 连接数据库
-	//err := dao.InitMySQL()
-	//if err != nil {
-	//	panic(err)
-	//}
+	//连接数据库
+	err := dao.InitMySQL()
+	dao.DB.AutoMigrate(models.UserInfo{})
+	if err != nil {
+		panic(err)
+	}
 	//defer dao.Close()  // 程序退出关闭数据库连接
-	r:=gin.Default()
 
-	r.POST("/register", RegisterHandle )
+	r:=gin.Default()
+	r.POST("/register", controller.RegisterHandle )
 	r.POST("/login",controller.LoginHandle)
 
 	Usergroup:=r.Group("/user",controller.JWTAuthMiddleware())
