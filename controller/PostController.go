@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"forum/models"
 )
-
+//创造post
 func Postcreat(c *gin.Context ) {
 	var requestPost models.Post
 	// 数据验证
