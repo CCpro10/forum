@@ -1,7 +1,9 @@
 package models
 
-import "github.com/jinzhu/gorm"
-
+import (
+	"github.com/jinzhu/gorm"
+	"time"
+)
 //论坛的代号
 const (
 Technologycode =iota
@@ -11,37 +13,48 @@ Entertainmentcode
 Gamescode
 Fashioncode
 Literaturecode
-
 )
 
 type Forum struct {
 
-
 }
 
+//管理员列表
+type Managerlist struct {
+	Forumcode      uint  `from:"forunmcode"`         //管理的论坛代号
+	UserID   string `from:"userphonenum"`  //管理者的手机号
+}
 
 //帖子
-type Article struct {
-	Id  int
-	Context  string
-	Author  string
-	Replies   []Reply//所有回复
-
+type Post struct {
+	ID        uint   `gorm:"primary_key"`
+	Forumcode int    `from:"forunmcode"`
+	Userid    int    `from:"userid"`
+	Article   string `from:"article"`
+	Context   string `from:"context"`
+	Author    string `from:"author"`
+	CreatedAt time.Time
+	//Replies   []Reply//所有回复
 }
 
-//帖子下面的回复
-type Reply struct{
-	Id int
-	Author  string
-	Context string
+//帖子下面的评论
+type Comment struct{
+	ID 		uint
+	Postid  int			 `from:"post"`
+	Author  string		 `from:"author"`
+	Context string		 `from:"context"`
+	CreatedAt time.Time
 	//用来存帖子下面回复的回复
-	Comments  []Comment
+	//Comments  []Comment
 }
 
 //帖子下面回复的回复
-type Comment struct {
-	Author  string
-	Context string
+type  Reply struct {
+	ID      uint
+	Commentid int		 `from:"commentid"`
+	Author  string		 `from:"author"`
+	Context string		 `from:"context"`
+	CreatedAt time.Time
 }
 
 type UserInfo struct {
@@ -53,3 +66,4 @@ type UserInfo struct {
 	//Manager    bool  `form:"manager"`//是否为管理者
 	//ManagedForum  string  `form:"managedforum"`//管理的
 }
+
