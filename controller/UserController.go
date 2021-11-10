@@ -15,7 +15,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-const TokenExpireDuration = time.Hour * 2
+const TokenExpireDuration = time.Hour*24*7
 var MySecret = []byte("天王盖地虎")
 
 // MyClaims 自定义声明结构体并内嵌jwt.StandardClaims
@@ -27,9 +27,9 @@ type MyClaims struct {
 	jwt.StandardClaims
 }
 
-// GenToken,传入username,生成JWT
+//生成令牌,传入userid,生成JWT
 func GenToken(UserId uint) (string, error) {
-	// 创建一个我们自己的声明
+	// 创建一个我们自己的声明/请求
 	c := MyClaims{
 		UserId, // 自定义字段
 		jwt.StandardClaims{
@@ -44,16 +44,18 @@ func GenToken(UserId uint) (string, error) {
 	return token.SignedString(MySecret)
 }
 
-// ParseToken 解析JWT，返回一个指针
+// ParseToken 解析tokenstring，返回一个包含信息的用户声明
 func ParseToken(tokenString string) (*MyClaims, error) {
-	// 解析token,第三个参数是一个回调函数,返回秘钥
+
+	// 通过tokenstring,请求结构,返回秘钥的一个回调函数 这三个参数,返回一个token结构体,token包含了请求结构
 	token, err := jwt.ParseWithClaims(tokenString, &MyClaims{}, func(token *jwt.Token) (i interface{}, err error) {
 		return MySecret, nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	// 校验token,token有效则返回claims，nil
+
+	// 校验token,token有效则返回claims请求，nil
 	if claims, ok := token.Claims.(*MyClaims); ok && token.Valid {
 		return claims, nil
 	}
@@ -97,7 +99,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 
 
 //注册路由
-func RegisterHandle(c *gin.Context) {
+func Register(c *gin.Context) {
 	// 前端页面填写待办事项 点击提交 会发请求到这里
 	// 1. 从请求中把数据拿出来
 	var user models.UserInfo
@@ -106,6 +108,7 @@ func RegisterHandle(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "用户参数绑定失败:" + err.Error()})
 	}
+
 	//2.验证id和密码的结构
 	log.Println(user.PhoneNumber,len(user.PhoneNumber), user.Password, user.Username,len(user.Password))
 	if len(user.PhoneNumber) != 11 {
@@ -144,8 +147,9 @@ func RegisterHandle(c *gin.Context) {
 		})
 	}
 }
+
 //登录,接收用户名和密码,如果正确的话返回一个tokenstring
-func LoginHandle(c *gin.Context) {
+func Login(c *gin.Context) {
 	// 用户发送用户名和密码过来
 	var requestUser models.UserInfo
 	var user models.UserInfo
@@ -188,12 +192,25 @@ func LoginHandle(c *gin.Context) {
 		"data": gin.H{"token": tokenString},
 	})
 	return
+}
+
+func ShowHomePage(c * gin.Context)  {
+		userid:=c.MustGet("userid")
+	    var user models.UserInfo
+		dao.DB.Where("ID=?",userid.(int)).First(&user)
+		c.JSON(200,gin.H{
+			"code":2000,
+			"msg":"访问成功",
+			"date":user,
+		})
 
 }
+
 //开发者的添加管理者功能,传入一个用户结构体指针,改变用户管理的论坛
 func Addmanager(*models.UserInfo ) {
 
 }
+
 //如果手机号在数据库中已存在返回ture
 func isPhoneNumberExist(db *gorm.DB, PhoneNumber string)bool{
 	var user models.UserInfo

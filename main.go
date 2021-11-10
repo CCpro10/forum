@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+
 	//连接数据库
 	err := dao.InitMySQL()
 	//dao.DB.AutoMigrate(models.UserInfo{})
@@ -17,25 +18,32 @@ func main() {
 	//defer dao.Close()  // 程序退出关闭数据库连接
 
 	r:=gin.Default()
-	r.POST("/register", controller.RegisterHandle )
-	r.POST("/login",controller.LoginHandle)
-
-
+	r.POST("/register", controller.Register)
+	r.POST("/login",controller.Login)
+	r.POST("/developerlogin",controller.Developerlogin)
 
 
 	Usergroup:=r.Group("/user",controller.JWTAuthMiddleware())
 {
-	Usergroup.GET("/home",func(c * gin.Context){
-    userid:=c.MustGet("userid")
-    c.JSON(200,gin.H{
-    	"code":2000,
-		"msg":"访问成功",
-		"date":gin.H{"userid":userid},
-	})
-	})
-	Usergroup.POST("/post",controller.Postcreat)
+	//home是用户主页会展示个人信息
+	Usergroup.GET("/home",controller.ShowHomePage)
+	//发帖
+	Usergroup.POST("/post",controller.CreatPost)
+	//发帖子评论
+	Usergroup.POST("/comment",controller.CreatComment)
+	//发帖子评论的回复
+	Usergroup.POST("/reply",controller.CreatReply)
+}
+	//写一个开发者的路由分组
+	Developergroup:=r.Group("/manager",controller.JWTAuthMiddleware())
+{
+	Developergroup.POST("/managerlist",controller.SetManager)
+
 
 
 }
+
+
+
     r.Run(":9999")
 }
