@@ -26,7 +26,6 @@ func Developerlogin(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "用户名或密码错误"})
 		return
 	}
-
 	// 生成Token
 	tokenString, _ := GenToken(uint(123456))
 	c.JSON(http.StatusOK, gin.H{
@@ -36,7 +35,7 @@ func Developerlogin(c *gin.Context) {
 	return
 }
 
-//修改管理员列表
+//修改管理员列表,传入userid 和forumcode
 func SetManager(c *gin.Context) {
 	var manager models.Managerlist
 	if err := c.ShouldBind(&manager); err != nil {
@@ -44,6 +43,7 @@ func SetManager(c *gin.Context) {
 		return
 	}
 
+	//检查此用户是否存在
 	var user models.UserInfo
 	dao.DB.Where("ID=?", manager.UserID).First(&user)
 	if user.ID == 0 {
@@ -53,13 +53,28 @@ func SetManager(c *gin.Context) {
 		return
 	}
 
+	//查询管理员列表,检查是否重复创建
+	var managerlist models.Managerlist
+	dao.DB.Where("user_id=? AND forumcode=?", manager.UserID,manager.Forumcode).First(&managerlist)
+	//不为0说明该管理员已存在
+	if managerlist.ID !=0 {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"msg": "此用户已经设置为该论坛管理员,请勿重复操作",
+		})
+		return
+	}
+
+	//创建列表
 	dao.DB.AutoMigrate(&models.Managerlist{})
-	err :=dao.DB.Create(&manager).Error//?????,创建成功无信息
+	err :=dao.DB.Create(&manager).Error
 	if err!=nil{
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"msg":  "管理员创建失败",
+		})
+	}else {
 		c.JSON(http.StatusOK, gin.H{
 			"msg":  "管理员创建成功",
 			"data": manager,
 		})
 	}
-
 }

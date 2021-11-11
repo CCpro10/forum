@@ -25,22 +25,29 @@ func main() {
 
 	Usergroup:=r.Group("/user",controller.JWTAuthMiddleware())
 {
+	//展示某个论坛的posts
+	Usergroup.GET("/posts",controller.Showposts)
+	//展示某个post的comments
+	Usergroup.GET("/comments",controller.Showcomments)
+	//展示某个comment的replies
+	Usergroup.GET("/replies",controller.Showreplies)
+
 	//home是用户主页会展示个人信息
 	Usergroup.GET("/home",controller.ShowHomePage)
 	//发帖
 	Usergroup.POST("/post",controller.CreatPost)
 	//发帖子评论
 	Usergroup.POST("/comment",controller.CreatComment)
-	//发帖子评论的回复
+	//回复帖子的评论
 	Usergroup.POST("/reply",controller.CreatReply)
 }
+
+
 	//写一个开发者的路由分组
-	Developergroup:=r.Group("/manager",controller.JWTAuthMiddleware())
+	Developergroup:=r.Group("/developer",controller.JWTAuthMiddleware())
 {
+	//设置管理员
 	Developergroup.POST("/managerlist",controller.SetManager)
-
-
-
 }
 
 

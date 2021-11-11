@@ -1,5 +1,4 @@
 package controller
-
 import (
 	"errors"
 	"fmt"
@@ -70,7 +69,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 		// 这里假设Token放在Header的Authorization中，并使用Bearer开头
 		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"msg":  "请求头中auth为空",})
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"msg":  "请求头中auth为空,请先登录"})
 			c.Abort()
 			return
 		}
@@ -78,7 +77,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 		// 按空格分割,在第一个空格后分割成两部分
 		parts := strings.SplitN(authHeader, " ", 2)
 		if !(len(parts) == 2 && parts[0] == "Bearer") {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"msg":  "请求头中auth格式有误",})
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "请求头中auth格式有误,请重新登录"})
 			c.Abort()
 			return
 		}
@@ -86,7 +85,7 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 		// parts[1]是获取到的tokenString，我们使用之前定义好的解析JWT的函数来解析它
 		mc, err := ParseToken(parts[1])
 		if err != nil {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"msg":  "此Token无效或已过期,请重新登录",})
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"msg":  "此Token无效或已过期,请重新登录"})
 			c.Abort()
 			return
 		}

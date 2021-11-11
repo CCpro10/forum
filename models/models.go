@@ -7,8 +7,8 @@ import (
 
 //论坛的代号
 const (
-	Technologycode = iota
-	Lifecode
+	Lifecode = iota
+	Technologycode
 	Emotioncode
 	Entertainmentcode
 	Gamescode
@@ -16,12 +16,19 @@ const (
 	Literaturecode
 )
 
+//控制论坛权限
 type Forum struct {
+	ID               uint
+	Forumcode        int  `form:"forumcode" `
+	Postpermission   bool `form:"postpermission" `
+	Commentpermisson bool `form:"commentpermission" `
+	Accesspermission bool `form:"accesspermission" `
 }
 
 //管理员列表
 type Managerlist struct {
-	UserID    string `form:"userid" `       //管理者的ID
+	ID        uint  `gorm:"primary_key"`
+	UserID    uint `form:"userid" `       //管理者的ID
 	Forumcode uint   `form:"forumcode"  `   //管理的论坛代号
 }
 
@@ -33,6 +40,7 @@ type Post struct {
 	Article   string `form:"article"`
 	Context   string `form:"context"`
 	Author    string `form:"author"`
+	//Commentpermission bool  `form:"commentpermission"default:"ture"`
 	CreatedAt time.Time
 	//Replies   []Reply//所有回复
 }
