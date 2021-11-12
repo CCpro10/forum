@@ -7,7 +7,6 @@ import (
 	_ "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	_ "github.com/jinzhu/gorm"
-	"log"
 	"net/http"
 )
 
@@ -20,7 +19,7 @@ func Developerlogin(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg":  "无效的参数"})
 		return
 	}
-	log.Printf("%+v",Developer)
+
 	// 校验用户名和密码是否正确
 	if Developer.PhoneNumber!= "123456"|| Developer.Password!= "666666"{
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "用户名或密码错误"})

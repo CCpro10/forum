@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/jinzhu/gorm"
 	_ "golang.org/x/crypto/bcrypt"
+	"log"
 	_ "log"
 	"net/http"
 )
@@ -20,7 +21,7 @@ func CreatPost(c *gin.Context ) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "用户参数绑定失败:" + err.Error()})
 	}
 	//检查发帖权限,以及帖子格式
-	var forum models.Forum
+	var forum models.Forumpermission
 	dao.DB.Where("forumcode = ?", requestPost.Forumcode).First(&forum)
 	if forum.Postpermission == false {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "此论坛现已禁止发帖"})
@@ -66,10 +67,11 @@ func CreatComment(c *gin.Context ) {
 
 	//检查评论权限,以及评论格式
 	var post models.Post
-	dao.DB.Where("postid = ?", requestComment.Postid).First(&post)
-	var forum models.Forum
-	dao.DB.Where(" forumcode= ?", post.Forumcode).First(&forum)
-	if forum.Commentpermisson == false {
+	dao.DB.Where("ID = ?", requestComment.Postid).First(&post)
+	var forumpermission models.Forumpermission
+	dao.DB.Where(" forumcode= ?", post.Forumcode).First(&forumpermission)
+	log.Printf("%+v",forumpermission)
+	if forumpermission.Commentpermission == false {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "此论坛的帖子现已禁止评论"})
 		return
 	}
@@ -137,7 +139,7 @@ func CreatReply(c *gin.Context ) {
 func Showposts(c *gin.Context)  {
 	forumcode:=c.Query("forumcode")
 	//检验论坛是否有访问权限
-	var forum models.Forum
+	var forum models.Forumpermission
 	dao.DB.Where("forumcode = ?", forumcode).First(&forum)
 	if forum.Accesspermission == false {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "此论坛现已禁止访问"})
@@ -171,7 +173,7 @@ func Showcomments(c *gin.Context)  {
 	forumcode:=post.Forumcode
 
 	//检验论坛是否有访问权限
-	var forum models.Forum
+	var forum models.Forumpermission
 	dao.DB.Where("forumcode = ?", forumcode).First(&forum)
 	if forum.Accesspermission == false {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "此论坛现已禁止访问"})

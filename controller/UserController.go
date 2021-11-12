@@ -205,10 +205,6 @@ func ShowHomePage(c * gin.Context)  {
 
 }
 
-//开发者的添加管理者功能,传入一个用户结构体指针,改变用户管理的论坛
-func Addmanager(*models.UserInfo ) {
-
-}
 
 //如果手机号在数据库中已存在返回ture
 func isPhoneNumberExist(db *gorm.DB, PhoneNumber string)bool{

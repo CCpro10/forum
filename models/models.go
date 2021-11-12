@@ -17,12 +17,12 @@ const (
 )
 
 //控制论坛权限
-type Forum struct {
-	ID               uint
-	Forumcode        int  `form:"forumcode" `
-	Postpermission   bool `form:"postpermission" `
-	Commentpermisson bool `form:"commentpermission" `
-	Accesspermission bool `form:"accesspermission" `
+type Forumpermission struct {
+	ID                uint
+	Forumcode         int  `form:"forumcode" `
+	Postpermission    bool `form:"postpermission" `    //论坛发帖权限
+	Commentpermission bool `form:"commentpermission" ` //论坛评论权限
+	Accesspermission  bool `form:"accesspermission" `  //论坛访问权限
 }
 
 //管理员列表
