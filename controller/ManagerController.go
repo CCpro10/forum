@@ -12,7 +12,7 @@ import (
 )
 
 //设置论坛发帖权限,传入forumcode和postpermission
-func SetPostpermission(c *gin.Context) {
+func SetPostPermission(c *gin.Context) {
 	//接收参数
 	var forumpermisson models.Forumpermission
 	if err := c.ShouldBind(&forumpermisson); err != nil {
@@ -43,7 +43,7 @@ func SetPostpermission(c *gin.Context) {
 }
 
 //设置论坛评论权限,传入forumcode和commentpermission
-func SetCommentpermission(c *gin.Context) {
+func SetCommentPermission(c *gin.Context) {
 	//接收参数
 	var forumpermission models.Forumpermission
 	if err := c.ShouldBind(&forumpermission); err != nil {
@@ -74,7 +74,7 @@ func SetCommentpermission(c *gin.Context) {
 }
 
 //设置论坛访问权限,传入forumcode和accesspermission
-func SetAccesspermission(c *gin.Context) {
+func SetAccessPermission(c *gin.Context) {
 	//接收参数
 	var forumpermisson models.Forumpermission
 	if err := c.ShouldBind(&forumpermisson); err != nil {

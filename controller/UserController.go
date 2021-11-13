@@ -154,8 +154,7 @@ func Login(c *gin.Context) {
 	var user models.UserInfo
 	err := c.ShouldBind(&requestUser)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 2001,
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"msg":  "无效的参数",
 		})
 		return
@@ -198,12 +197,43 @@ func ShowHomePage(c * gin.Context)  {
 	    var user models.UserInfo
 		dao.DB.Where("ID=?",userid.(int)).First(&user)
 		c.JSON(200,gin.H{
-			"code":2000,
 			"msg":"访问成功",
 			"date":user,
 		})
 
 }
+
+//传入username
+func ChangeUsername(c *gin.Context)  {
+	//绑定userna参数
+	var qequestuser models.UserInfo
+    err:=c.ShouldBind(&qequestuser)
+	if err != nil {
+		c.JSON(http.StatusUnprocessableEntity,gin.H{"msg":"用户名参数绑定失败"})
+		return
+	}
+
+	//用户名不能太短
+	if len(qequestuser.Username)<4{
+		c.JSON(http.StatusUnprocessableEntity,gin.H{"msg":"用户名过短"})
+		return
+	}
+
+	//获取userid
+	 userid,ok:=c.Get("userid")
+	if !ok  {
+		c.JSON(http.StatusUnprocessableEntity,gin.H{"msg":"用户ID获取失败"})
+		return
+	}
+
+	//通过id修改username
+	dao.DB.AutoMigrate(models.UserInfo{})
+	dao.DB.Model(&models.UserInfo{}).Where("ID= ?", userid).Update("username", qequestuser.Username)
+	c.JSON(http.StatusOK, gin.H{"msg": "用户名修改成功"})
+	return
+}
+
+
 
 
 //如果手机号在数据库中已存在返回ture

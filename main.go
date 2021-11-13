@@ -34,6 +34,8 @@ func main() {
 
 	//home是用户主页会展示个人信息
 	Usergroup.GET("/home",controller.ShowHomePage)
+	//
+	Usergroup.PUT("/username",controller.ChangeUsername)
 
 	//发帖
 	Usergroup.POST("/post",controller.CreatPost)
@@ -43,12 +45,11 @@ func main() {
 	Usergroup.POST("/reply",controller.CreatReply)
 
 	//设置论坛发帖权限,传入forumcod和postpermission
-	Usergroup.PUT("/postpermission",controller.SetPostpermission)
+	Usergroup.PUT("/postpermission",controller.SetPostPermission)
 	//设置论坛发帖权限,传入forumcod和commentpermission
-	Usergroup.PUT("/commentpermission",controller.SetCommentpermission)
+	Usergroup.PUT("/commentpermission",controller.SetCommentPermission)
 	//设置论坛发帖权限,传入forumcod和accesspermission
-	Usergroup.PUT("/accesspermission",controller.SetAccesspermission)
-
+	Usergroup.PUT("/accesspermission",controller.SetAccessPermission)
 }
 	//写一个开发者的路由分组
 	Developergroup:=r.Group("/developer",controller.JWTAuthMiddleware())

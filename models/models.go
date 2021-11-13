@@ -35,7 +35,7 @@ type Managerlist struct {
 //帖子
 type Post struct {
 	ID        uint   `gorm:"primary_key" `
-	Forumcode int    `form:"forunmcode"`
+	Forumcode int    `form:"forumcode"`
 	Userid    int    `form:"userid"`
 	Article   string `form:"article"`
 	Context   string `form:"context"`

@@ -2,18 +2,14 @@ package controller
 
 import (
 	"fmt"
-	_ "fmt"
 	"forum/dao"
     "forum/models"
 	"github.com/gin-gonic/gin"
-	_ "github.com/jinzhu/gorm"
-	_ "golang.org/x/crypto/bcrypt"
 	"log"
-	_ "log"
 	"net/http"
 )
 
-//发布post
+//发布post,接收forumcode,context,article
 func CreatPost(c *gin.Context ) {
 	var requestPost models.Post
 	// 数据验证
@@ -32,7 +28,6 @@ func CreatPost(c *gin.Context ) {
 		c.JSON(http.StatusUnprocessableEntity,gin.H{"msg":"帖子必须含标题和内容,帖子发布失败"})
 		return
 	}
-
 
 	// 获取登录用户的id
 	userid, _ := c.Get("userid")
@@ -57,7 +52,7 @@ func CreatPost(c *gin.Context ) {
 }
 
 
-//发布comment
+//发布comment,接收postid,context
 func CreatComment(c *gin.Context ) {
 	var requestComment models.Comment
 	// 数据验证
@@ -102,7 +97,7 @@ func CreatComment(c *gin.Context ) {
 	return
 }
 
-//发布Reply
+//发布Reply,接收commentid,context
 func CreatReply(c *gin.Context ) {
 	var requestReply models.Reply
 	// 数据验证
