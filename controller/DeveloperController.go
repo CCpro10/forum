@@ -25,8 +25,8 @@ func Developerlogin(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "用户名或密码错误"})
 		return
 	}
-	// 生成Token
-	tokenString, _ := GenToken(uint(123456))
+	// 生成Token,设置token中开发者id为999999999
+	tokenString, _ := GenToken(uint(999999999))
 	c.JSON(http.StatusOK, gin.H{
 		"msg":  "开发者登录成功",
 		"data": gin.H{"token": tokenString},
@@ -41,7 +41,12 @@ func SetManager(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "无效的参数"})
 		return
 	}
-
+	//检查ID是否为管理员的ID
+	managerid,ok:=c.Get("userid")
+	if!ok||managerid!=999999999{
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"msg": "您不是开发者,无操作权限"})
+		return
+	}
 	//检查此用户是否存在
 	var user models.UserInfo
 	dao.DB.Where("ID=?", manager.UserID).First(&user)
