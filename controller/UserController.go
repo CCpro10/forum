@@ -14,7 +14,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-const TokenExpireDuration = time.Hour*24*7
+const TokenExpireDuration = time.Hour*24
 var MySecret = []byte("天王盖地虎")
 
 // MyClaims 自定义声明结构体并内嵌jwt.StandardClaims
